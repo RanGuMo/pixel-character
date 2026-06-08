@@ -7,6 +7,7 @@
         <el-radio-button value="crop">✂ 裁切</el-radio-button>
         <el-radio-button value="library">📦 部件库</el-radio-button>
         <el-radio-button value="assemble">🎮 混搭</el-radio-button>
+        <el-radio-button value="stitch">🖼 拼接</el-radio-button>
       </el-radio-group>
       <div style="flex:1" />
       <el-switch v-model="isDark" size="small" inline-prompt active-text="🌙" inactive-text="☀️" @change="toggleTheme" />
@@ -15,24 +16,65 @@
     </el-header>
 
     <!-- Main -->
-    <el-container>
+    <el-container style="min-height:0">
       <!-- Canvas -->
       <el-main class="canvas-bg" style="padding:0;overflow:hidden;position:relative">
         <CropView   v-show="store.mode === 'crop'" />
         <LibraryView v-show="store.mode === 'library'" />
         <AssemblyView v-show="store.mode === 'assemble'" />
+        <StitchView
+          v-show="store.mode === 'stitch'"
+          ref="stitchViewRef"
+          v-model:images="stitchImages"
+          :mode="stitchMode"
+          :grid-rows="stitchGridRows"
+          :grid-cols="stitchGridCols"
+          :grid-gap="stitchGridGap"
+          :canvas-width="stitchCanvasW"
+          :canvas-height="stitchCanvasH"
+          :bg-color="stitchBgColor"
+          :display-scale="stitchDisplayScale"
+        />
       </el-main>
 
       <!-- Right Panel -->
-      <el-aside width="310px" class="panel-aside">
+      <el-aside width="310px" class="panel-aside" style="height:100%;overflow-y:auto;min-height:0">
         <CropPanel    v-if="store.mode === 'crop'" />
         <CategoryPanel v-if="store.mode === 'library'" />
         <AssemblyPanel v-if="store.mode === 'assemble'" />
+        <StitchPanel
+          v-if="store.mode === 'stitch'"
+          :images="stitchImages"
+          :mode="stitchMode"
+          :grid-rows="stitchGridRows"
+          :grid-cols="stitchGridCols"
+          :grid-gap="stitchGridGap"
+          :canvas-width="stitchCanvasW"
+          :canvas-height="stitchCanvasH"
+          :bg-color="stitchBgColor"
+          :display-scale="stitchDisplayScale"
+          @update:images="v => stitchImages = v"
+          @update:mode="v => stitchMode = v"
+          @update:grid-rows="v => stitchGridRows = v"
+          @update:grid-cols="v => stitchGridCols = v"
+          @update:grid-gap="v => stitchGridGap = v"
+          @update:canvas-width="v => stitchCanvasW = v"
+          @update:canvas-height="v => stitchCanvasH = v"
+          @update:bg-color="v => stitchBgColor = v"
+          @update:display-scale="v => stitchDisplayScale = v"
+          @apply-grid="onApplyGrid"
+          @export="onExport"
+          @clear-all="onClearAll"
+          @delete-layer="onDeleteLayer"
+          @select-layer="onSelectLayer"
+        />
       </el-aside>
     </el-container>
 
     <!-- Preset Bar -->
-    <PresetBar />
+    <el-footer v-if="store.mode === 'assemble'" height="50px" class="preset-footer">
+      <PresetBar />
+    </el-footer>
 
     <!-- Part Picker Modal -->
     <PartPickerModal />
@@ -50,10 +92,24 @@ import AssemblyView from './components/AssemblyView.vue'
 import AssemblyPanel from './components/AssemblyPanel.vue'
 import PresetBar from './components/PresetBar.vue'
 import PartPickerModal from './components/PartPickerModal.vue'
+import StitchView from './components/StitchView.vue'
+import StitchPanel from './components/StitchPanel.vue'
 
 const store = useAppStore()
 const fileInputRef = ref(null)
 const isDark = ref(true)
+const stitchViewRef = ref(null)
+
+// ── Stitch state ──────────────────────────────────────
+const stitchImages = ref([])
+const stitchMode = ref('free')
+const stitchGridRows = ref(1)
+const stitchGridCols = ref(2)
+const stitchGridGap = ref(0)
+const stitchCanvasW = ref(0)
+const stitchCanvasH = ref(0)
+const stitchBgColor = ref('transparent')
+const stitchDisplayScale = ref(1)
 
 const THEME_KEY = 'pixel_char_theme'
 
@@ -118,6 +174,24 @@ function onModeChange () {
     store.loadPreset(store.presets[0].id)
   }
 }
+
+// ── Stitch handlers ──────────────────────────────────
+function onApplyGrid () {
+  // Trigger grid layout from StitchView
+  stitchViewRef.value?.applyGridLayout?.()
+}
+function onExport () {
+  stitchViewRef.value?.exportPNG()
+}
+function onClearAll () {
+  stitchViewRef.value?.clearAll()
+}
+function onDeleteLayer (id) {
+  stitchImages.value = stitchImages.value.filter(i => i.id !== id)
+}
+function onSelectLayer (id) {
+  // Handled internally by StitchView
+}
 </script>
 
 <style scoped>
@@ -141,6 +215,12 @@ function onModeChange () {
   border-left: 1px solid var(--border);
   overflow-y: auto;
   padding: 16px;
+  transition: background 0.3s, border-color 0.3s;
+}
+.preset-footer {
+  padding: 0;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
   transition: background 0.3s, border-color 0.3s;
 }
 </style>
