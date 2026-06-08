@@ -1,0 +1,83 @@
+/* ── Light theme (default) ──────────────────────────── */
+:root {
+  --bg:       #f0f2f5;
+  --panel:    #ffffff;
+  --border:   #d9dce1;
+  --text:     #1f2328;
+  --text2:    #656d76;
+  --accent:   #d4880f;
+  --accent-dim: rgba(212, 136, 15, 0.1);
+  --danger:   #d9363e;
+  --canvas-inner: #e8ecf1;
+  --canvas-outer: #d5dae0;
+  color-scheme: light;
+}
+
+/* ── Dark theme ─────────────────────────────────────── */
+html.dark {
+  --bg:       #0d1117;
+  --panel:    #161b22;
+  --border:   #30363d;
+  --text:     #c9d1d9;
+  --text2:    #8b949e;
+  --accent:   #ffd700;
+  --accent-dim: rgba(255, 215, 0, 0.15);
+  --danger:   #f66;
+  --canvas-inner: #1e2a3a;
+  --canvas-outer: #0d1117;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  user-select: none;
+  overflow: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ── Canvas gradient ─────────────────────────────────── */
+.canvas-bg {
+  background: radial-gradient(ellipse at center, var(--canvas-inner) 0%, var(--canvas-outer) 100%);
+}
+
+/* ── Part animations ─────────────────────────────────── */
+@keyframes head-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+@keyframes body-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+.anim-head {
+  animation: head-bob var(--anim-speed, 1.2s) ease-in-out infinite;
+}
+.anim-body {
+  animation: body-bob var(--anim-speed, 1.2s) ease-in-out infinite var(--anim-delay, 0s);
+}
+
+/* ── Pixel rendering ─────────────────────────────────── */
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* ── Part inner transform ────────────────────────────── */
+.part-inner {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  transform: translate(-50%, -50%)
+             translate(var(--ox, 0px), var(--oy, 0px))
+             scale(var(--s, 1));
+}
+
+/* ── Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text2); }
